@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전남자활 사업기획전문가과정 자료실</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #2E7D5E;
+    --primary-light: #4CAF82;
+    --primary-pale: #E8F5EE;
+    --accent: #F0A500;
+    --danger: #E53935;
+    --bg: #F5F7F5;
+    --card: #FFFFFF;
+    --text: #333;
+    --text-muted: #888;
+    --border: #DDE8E3;
+    --shadow: 0 2px 12px rgba(46,125,94,0.10);
+  }
+  body { font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── 로그인 ── */
+  #loginScreen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #1B5E3D 0%, #2E7D5E 50%, #43A378 100%);
+  }
+  .login-box {
+    background: white; border-radius: 20px; padding: 48px 40px; width: 100%; max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .login-logo { text-align: center; margin-bottom: 32px; }
+  .login-logo .icon { font-size: 56px; }
+  .login-logo h1 { font-size: 18px; font-weight: 700; color: var(--primary); margin-top: 12px; line-height: 1.4; }
+  .login-logo p { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+  .login-count { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 10px; }
+  .login-count strong { color: var(--primary); font-weight: 700; }
+  .login-schedule { font-size: 14px; font-weight: 700; color: #1565C0; margin-top: 10px; line-height: 1.7; }
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 6px; }
+  .form-group select, .form-group input {
+    width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px;
+    font-size: 15px; color: var(--text); background: white; appearance: none;
+    transition: border-color 0.2s;
+  }
+  .form-group select:focus, .form-group input:focus { border-color: var(--primary); outline: none; }
+  .btn-login {
+    width: 100%; padding: 14px; background: var(--primary); color: white; border: none;
+    border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.2s;
+    margin-top: 8px;
+  }
+  .btn-login:hover { background: var(--primary-light); }
+  .login-error { background: #FFF3F3; border: 1px solid #FFCDD2; color: var(--danger); padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-top: 12px; display: none; }
+  .login-footer { text-align: center; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); line-height: 1.8; }
+
+  /* ── 앱 레이아웃 ── */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+  header {
+    background: var(--primary); color: white; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between; height: 60px;
+    position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header-title { font-size: 16px; font-weight: 700; }
+  .header-title span { font-size: 12px; font-weight: 400; opacity: 0.8; display: block; }
+  .header-user { display: flex; align-items: center; gap: 12px; }
+  .user-badge { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 5px 12px; font-size: 13px; }
+  .btn-logout { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+  .btn-logout:hover { background: rgba(255,255,255,0.3); }
+
+  /* ── 탭 ── */
+  .tabs { background: white; border-bottom: 2px solid var(--border); display: flex; overflow-x: auto; }
+  .tab-btn {
+    flex: 1; min-width: 80px; padding: 14px 8px; border: none; background: none; cursor: pointer;
+    font-size: 13px; font-weight: 600; color: var(--text-muted); transition: all 0.2s;
+    border-bottom: 3px solid transparent; white-space: nowrap;
+  }
+  .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .tab-btn:hover:not(.active) { background: var(--primary-pale); color: var(--primary); }
+
+  /* ── 콘텐츠 영역 ── */
+  .content { flex: 1; padding: 24px 16px; max-width: 860px; margin: 0 auto; width: 100%; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── 카드 ── */
+  .card { background: var(--card); border-radius: 14px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .card-title { font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+
+  /* ── 폼 요소 ── */
+  .field-group { margin-bottom: 16px; }
+  .field-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #555; }
+  .field-group input, .field-group select, .field-group textarea {
+    width: 100%; padding: 10px 13px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 14px; color: var(--text); background: white; transition: border-color 0.2s; resize: vertical;
+  }
+  .field-group input:focus, .field-group select:focus, .field-group textarea:focus { border-color: var(--primary); outline: none; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ── 버튼 ── */
+  .btn { padding: 10px 20px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-light); }
+  .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+  .btn-secondary { background: var(--primary-pale); color: var(--primary); }
+  .btn-secondary:hover { background: #d0ead8; }
+  .btn-danger { background: #FFEBEE; color: var(--danger); }
+  .btn-danger:hover { background: #FFCDD2; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* ── 파일 드롭존 ── */
+  .dropzone {
+    border: 2.5px dashed var(--border); border-radius: 12px; padding: 32px 20px;
+    text-align: center; cursor: pointer; transition: all 0.2s; background: #FAFFFE;
+  }
+  .dropzone:hover, .dropzone.drag-over { border-color: var(--primary); background: var(--primary-pale); }
+  .dropzone .dz-icon { font-size: 40px; }
+  .dropzone p { margin-top: 10px; font-size: 14px; color: var(--text-muted); }
+  .dropzone .file-name { color: var(--primary); font-weight: 600; margin-top: 6px; font-size: 14px; }
+  .dropzone input[type="file"] { display: none; }
+
+  /* ── 업로드 프로그레스 ── */
+  .progress-wrap { margin-top: 12px; display: none; }
+  .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--primary); border-radius: 4px; width: 0; transition: width 0.3s; }
+  .progress-text { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ── 알림 토스트 ── */
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #333; color: white; padding: 12px 24px; border-radius: 24px; font-size: 14px; z-index: 9999; transition: transform 0.3s; pointer-events: none; white-space: nowrap; }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.success { background: var(--primary); }
+  #toast.error { background: var(--danger); }
+
+  /* ── 자료 목록 ── */
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .filter-chip {
+    padding: 6px 14px; border-radius: 20px; border: 2px solid var(--border); background: white;
+    font-size: 13px; cursor: pointer; transition: all 0.2s; color: var(--text-muted);
+  }
+  .filter-chip.active { background: var(--primary); border-color: var(--primary); color: white; font-weight: 600; }
+  .material-list { display: flex; flex-direction: column; gap: 12px; }
+  .material-card {
+    background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px;
+    transition: box-shadow 0.2s; cursor: pointer;
+  }
+  .material-card:hover { box-shadow: var(--shadow); }
+  .material-header { display: flex; align-items: flex-start; gap: 12px; }
+  .material-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .material-icon.file { background: #E3F2FD; }
+  .material-icon.link { background: #FFF9E3; }
+  .material-info { flex: 1; min-width: 0; }
+  .material-title { font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .material-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .material-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; background: var(--primary-pale); color: var(--primary); margin-right: 6px; }
+  .material-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .comment-section { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px; display: none; }
+  .comment-item { background: var(--bg); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+  .comment-item .comment-author { font-size: 12px; font-weight: 600; color: var(--primary); }
+  .comment-item .comment-text { font-size: 13px; margin-top: 4px; line-height: 1.5; }
+  .comment-input-row { display: flex; gap: 8px; margin-top: 10px; }
+  .comment-input-row input { flex: 1; padding: 8px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 13px; }
+  .comment-input-row input:focus { border-color: var(--primary); outline: none; }
+
+  /* ── 빈 상태 ── */
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+  .empty-state .empty-icon { font-size: 48px; }
+  .empty-state p { margin-top: 12px; font-size: 15px; }
+
+  /* ── 로딩 스피너 ── */
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── 반응형 ── */
+  @media (max-width: 480px) {
+    .login-box { padding: 36px 24px; }
+    .field-row { grid-template-columns: 1fr; }
+    .content { padding: 16px 12px; }
+    .tab-btn { font-size: 12px; padding: 12px 6px; }
+    header { padding: 0 14px; }
+    .header-title { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ 로그인 화면 ══ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon">🌱</div>
+      <h1>전남자활<br>사업기획전문가과정 자료실</h1>
+      <p>2026년 전남광역자활센터 교육 참가자 전용</p>
+      <p class="login-schedule">2026. 6. 10~12(기초)<br>2026. 9. 10~11(고급)</p>
+    </div>
+    <div class="form-group">
+      <label>소속기관</label>
+      <select id="loginOrg">
+        <option value="">-- 소속기관 선택 --</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>이름</label>
+      <input type="text" id="loginName" placeholder="본인 이름 입력" maxlength="10">
+    </div>
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">입장하기</button>
+    <div class="login-count" id="loginCount">총 입장 횟수: <strong id="loginCountNum">-</strong>회</div>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-footer">
+      ✦ 참가자 명단에 등록된 분만 접근 가능합니다<br>
+      제작: 희망연구소 소장 <strong>최광돈</strong><br>
+      📧 kdchoiyou@naver.com &nbsp;|&nbsp; 📱 010-2622-5907
+    </div>
+  </div>
+</div>
+
+<!-- ══ 메인 앱 ══ -->
+<div id="app">
+  <header>
+    <div class="header-title">
+      🌱 사업기획전문가과정 자료실
+      <span>전남광역자활센터 2026</span>
+    </div>
+    <div class="header-user">
+      <div class="user-badge" id="userBadge"></div>
+      <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="upload" onclick="switchTab('upload')">📁 자료 올리기</button>
+    <button class="tab-btn" data-tab="link" onclick="switchTab('link')">🔗 링크 등록</button>
+    <button class="tab-btn" data-tab="view" onclick="switchTab('view')">📋 전체 자료</button>
+    <button class="tab-btn" data-tab="about" onclick="switchTab('about')">ℹ️ 안내</button>
+  </div>
+
+  <div class="content">
+
+    <!-- 자료 올리기 탭 -->
+    <div class="tab-panel active" id="tab-upload">
+      <div class="card">
+        <div class="card-title">📁 자료 올리기</div>
+        <div class="field-group">
+          <label>자료 유형 <span style="color:red">*</span></label>
+          <select id="uploadCategory">
+            <option value="벤치마킹자료">📊 벤치마킹자료</option>
+            <option value="사업계획서초안">📝 사업계획서 초안</option>
+            <option value="타당성검토평가서">✅ 타당성 검토 평가서</option>
+            <option value="기타">📄 기타 자료</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>제목 <span style="color:red">*</span></label>
+          <input type="text" id="uploadTitle" placeholder="예: ○○센터 벤치마킹자료 (2026.06)">
+        </div>
+        <div class="field-group">
+          <label>파일 선택 <span style="color:red">*</span></label>
+          <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+            <div class="dz-icon">📂</div>
+            <p>클릭하거나 파일을 여기에 끌어다 놓으세요</p>
+            <p style="font-size:12px; margin-top:4px;">PDF, Word, Excel, PowerPoint, 이미지 등 (최대 30MB)</p>
+            <div class="file-name" id="selectedFileName"></div>
+            <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.hwp,.jpg,.jpeg,.png,.zip" onchange="fileSelected(this)">
+          </div>
+          <div class="progress-wrap" id="progressWrap">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-text" id="progressText">업로드 중...</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" style="width:100%">
+          📤 업로드
+        </button>
+      </div>
+    </div>
+
+    <!-- 링크 등록 탭 -->
+    <div class="tab-panel" id="tab-link">
+      <div class="card">
+        <div class="card-title">🔗 링크 등록</div>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:18px;">홈페이지 주소, 참고 사이트 등 URL 링크를 등록해 공유하세요.</p>
+        <div class="field-group">
+          <label>유형</label>
+          <select id="linkCategory">
+            <option value="홈페이지">🌐 홈페이지</option>
+            <option value="참고자료">🔗 참고자료</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>제목 <span style="color:red">*</span></label>
+          <input type="text" id="linkTitle" placeholder="예: ○○센터 홈페이지">
+        </div>
+        <div class="field-group">
+          <label>URL <span style="color:red">*</span></label>
+          <input type="url" id="linkUrl" placeholder="https://...">
+        </div>
+        <button class="btn btn-primary" id="linkBtn" onclick="submitLink()" style="width:100%">
+          🔗 링크 등록
+        </button>
+      </div>
+    </div>
+
+    <!-- 전체 자료 탭 -->
+    <div class="tab-panel" id="tab-view">
+      <div class="card" style="padding:16px 18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div class="card-title" style="margin-bottom:0">📋 전체 자료</div>
+          <button class="btn btn-secondary btn-sm" onclick="loadMaterials()">🔄 새로고침</button>
+        </div>
+        <div class="filter-bar" id="filterBar">
+          <div class="filter-chip active" data-cat="전체" onclick="filterMaterials('전체', this)">전체</div>
+          <div class="filter-chip" data-cat="벤치마킹자료" onclick="filterMaterials('벤치마킹자료', this)">📊 벤치마킹자료</div>
+          <div class="filter-chip" data-cat="사업계획서초안" onclick="filterMaterials('사업계획서초안', this)">📝 사업계획서초안</div>
+          <div class="filter-chip" data-cat="타당성검토평가서" onclick="filterMaterials('타당성검토평가서', this)">✅ 타당성 검토 평가서</div>
+          <div class="filter-chip" data-cat="기타" onclick="filterMaterials('기타', this)">📄 기타자료</div>
+          <div class="filter-chip" data-cat="홈페이지" onclick="filterMaterials('홈페이지', this)">🌐 홈페이지</div>
+          <div class="filter-chip" data-cat="링크" onclick="filterMaterials('링크', this)">🔗 링크</div>
+        </div>
+      </div>
+      <div id="materialList">
+        <div class="empty-state"><div class="empty-icon">⏳</div><p>자료를 불러오는 중...</p></div>
+      </div>
+    </div>
+
+    <!-- 안내 탭 -->
+    <div class="tab-panel" id="tab-about">
+      <div class="card">
+        <div class="card-title">ℹ️ 자료실 이용 안내</div>
+        <div style="font-size:14px; line-height:2; color:#555;">
+          <p>✅ <strong>접근 권한:</strong> 교육 참가자 23명만 이용 가능합니다.</p>
+          <p>📁 <strong>자료 올리기:</strong> 벤치마킹자료, 사업계획서 초안 등 파일을 올릴 수 있습니다.</p>
+          <p>🔗 <strong>링크 등록:</strong> 센터 홈페이지, 참고 사이트 주소를 등록해 공유할 수 있습니다.</p>
+          <p>📋 <strong>전체 자료:</strong> 모든 참가자가 올린 자료를 조회하고 댓글을 달 수 있습니다.</p>
+          <p>💬 <strong>댓글:</strong> 각 자료에 의견이나 피드백을 남길 수 있습니다.</p>
+          <p>⚠️ <strong>파일 크기:</strong> 최대 30MB까지 업로드 가능합니다.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">👨‍💼 운영자 정보</div>
+        <div style="font-size:14px; line-height:2; color:#555;">
+          <p>🏢 <strong>희망연구소</strong></p>
+          <p>👤 소장 <strong>최광돈</strong></p>
+          <p>📧 kdchoiyou@naver.com</p>
+          <p>📱 010-2622-5907</p>
+          <br>
+          <p style="font-size:12px; color:#aaa;">2026년 전남광역자활센터 사업기획전문가과정</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// ▶ 설정: Google Apps Script 배포 URL을 여기에 입력하세요
+// ══════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycby7cTGgcfVyYidbIzc3SD4UGRRdHR1_ZXpTzXNvJCrTcARNmvRnyl8D_y8u8N5YLbTh/exec';
+// 예: 'https://script.google.com/macros/s/AKfycbxxxxxxx/exec'
+
+// ── 전역 상태 ──
+let currentUser = null;
+let allMaterials = [];
+let selectedFile = null;
+let currentFilter = '전체';
+
+// ── 소속기관 목록 (이미지 출석부 기준, 내림차순) ──
+const ORGS = [
+  "희망연구소",
+  "전남화순지역자활센터","전남해남지역자활센터","전남함평지역자활센터",
+  "전남진도지역자활센터","전남장흥지역자활센터","전남장성지역자활센터",
+  "전남완도지역자활센터","전남영암지역자활센터","전남영광지역자활센터",
+  "전남여수지역자활센터","전남신안지역자활센터","전남순천지역자활센터",
+  "전남보성지역자활센터","전남무안지역자활센터","전남목포지역자활센터",
+  "전남나주지역자활센터","전남구례지역자활센터","전남광역자활센터",
+  "전남광양지역자활센터","전남곡성지역자활센터","전남강진지역자활센터"
+];
+
+(function populateOrgs() {
+  const sel = document.getElementById('loginOrg');
+  ORGS.forEach(org => {
+    const opt = document.createElement('option');
+    opt.value = org; opt.textContent = org;
+    sel.appendChild(opt);
+  });
+})();
+
+// ── 로그인 ──
+async function doLogin() {
+  const org = document.getElementById('loginOrg').value;
+  const name = document.getElementById('loginName').value.trim();
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+
+  if (!org) { showError(errEl, '소속기관을 선택해주세요.'); return; }
+  if (!name) { showError(errEl, '이름을 입력해주세요.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 확인 중...';
+
+  try {
+    const res = await api('POST', { action: 'login', name, org });
+    if (res.success) {
+      currentUser = { name: res.name, org: res.org, isAdmin: res.isAdmin };
+      sessionStorage.setItem('user', JSON.stringify(currentUser));
+      if (typeof res.loginCount === 'number') updateLoginCountDisplay(res.loginCount);
+      enterApp();
+    } else {
+      showError(errEl, res.message || '접근이 거부되었습니다.');
+    }
+  } catch(e) {
+    // API_URL 미설정 시 로컬 테스트 모드 (삭제 후 실제 URL 설정 필요)
+    if (API_URL === 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL') {
+      showError(errEl, '⚠️ 아직 서버 URL이 설정되지 않았습니다.\nsetup_guide.md를 참고해 Google Apps Script를 배포해주세요.');
+    } else {
+      showError(errEl, '서버 연결 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    }
+  } finally {
+    btn.disabled = false; btn.innerHTML = '입장하기';
+  }
+}
+
+function showError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
+
+// ── 총 입장 횟수 표시 ──
+function updateLoginCountDisplay(count) {
+  const el = document.getElementById('loginCountNum');
+  if (el) el.textContent = count.toLocaleString('ko-KR');
+}
+async function fetchLoginCount() {
+  try {
+    const res = await api('GET', { action: 'getLoginCount' });
+    if (res.success) updateLoginCountDisplay(res.count);
+  } catch (e) {
+    // 조용히 무시: 횟수 표시는 부가 정보이므로 실패해도 로그인 자체에는 영향 없음
+  }
+}
+fetchLoginCount();
+
+function enterApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+  document.getElementById('userBadge').textContent = `${currentUser.org} ${currentUser.name}${currentUser.isAdmin ? ' 👑' : ''}`;
+  // 입장 성공 시 전체 자료 탭으로 이동하여 자동 조회
+  switchTab('view');
+}
+
+function logout() {
+  if (!confirm('로그아웃하시겠습니까?')) return;
+  currentUser = null;
+  sessionStorage.removeItem('user');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginName').value = '';
+  document.getElementById('loginOrg').value = '';
+}
+
+// ── 탭 전환 ──
+// data-tab 속성으로 버튼을 찾기 때문에 클릭 이벤트 없이(코드에서 직접) 호출해도 동작합니다.
+// opts.skipLoad: true 이면 전체 자료 탭으로 이동할 때 서버 재조회(느린 GET 요청)를 하지 않습니다.
+// (업로드/링크 등록 직후처럼 이미 화면에 보여줄 데이터를 직접 만들어둔 경우에 사용)
+function switchTab(id, opts) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  const btn = document.querySelector('.tab-btn[data-tab="' + id + '"]');
+  if (btn) btn.classList.add('active');
+  if (id === 'view' && !(opts && opts.skipLoad)) loadMaterials();
+}
+
+// 필터를 '전체'로 되돌려서 방금 등록한 자료가 바로 보이도록 함
+function resetFilterToAll() {
+  currentFilter = '전체';
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  const chip = document.querySelector('.filter-chip[data-cat="전체"]');
+  if (chip) chip.classList.add('active');
+}
+
+// 화면은 막지 않고 조용히 서버 최신 데이터로 동기화 (다른 참가자가 올린 자료 반영용)
+async function silentRefreshMaterials() {
+  try {
+    const res = await api('GET', { action: 'getMaterials' });
+    if (res.success) {
+      allMaterials = res.data.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+      renderMaterials();
+    }
+  } catch (e) {
+    // 조용히 무시: 다음 '새로고침' 클릭이나 탭 재방문 시 다시 시도됨
+  }
+}
+
+// ── 파일 선택 ──
+function fileSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 30 * 1024 * 1024) { showToast('파일 크기가 30MB를 초과합니다.', 'error'); input.value = ''; return; }
+  selectedFile = file;
+  document.getElementById('selectedFileName').textContent = `📄 ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)`;
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) { document.getElementById('fileInput').files = e.dataTransfer.files; fileSelected({files:[file]}); }
+}
+function handleDragOver(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('drag-over'); }
+function handleDragLeave(e) { document.getElementById('dropzone').classList.remove('drag-over'); }
+
+// ── 파일 업로드 ──
+async function uploadFile() {
+  const title = document.getElementById('uploadTitle').value.trim();
+  const category = document.getElementById('uploadCategory').value;
+  if (!title) { showToast('제목을 입력해주세요.', 'error'); return; }
+  if (!selectedFile) { showToast('파일을 선택해주세요.', 'error'); return; }
+
+  const btn = document.getElementById('uploadBtn');
+  const pw = document.getElementById('progressWrap');
+  const pf = document.getElementById('progressFill');
+  const pt = document.getElementById('progressText');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 업로드 중...';
+  pw.style.display = 'block';
+  pf.style.width = '30%';
+  pt.textContent = '파일 읽는 중...';
+
+  try {
+    const fileData = await readFileAsBase64(selectedFile);
+    pf.style.width = '60%';
+    pt.textContent = '서버에 전송 중...';
+
+    const fileNameForUpload = selectedFile.name;
+    const res = await api('POST', {
+      action: 'uploadFile',
+      fileName: fileNameForUpload,
+      fileData,
+      mimeType: selectedFile.type,
+      uploaderName: currentUser.name,
+      uploaderOrg: currentUser.org,
+      category,
+      title
+    });
+
+    pf.style.width = '100%';
+    if (res.success) {
+      showToast('업로드 완료!', 'success');
+      document.getElementById('uploadTitle').value = '';
+      document.getElementById('fileInput').value = '';
+      document.getElementById('selectedFileName').textContent = '';
+      selectedFile = null;
+
+      // 서버를 다시 조회(느린 GET 요청)하는 대신, 방금 등록한 자료를 화면에 바로 추가해서 보여줌
+      allMaterials.unshift({
+        id: res.id, type: 'file', title, url: res.url, filename: fileNameForUpload,
+        uploaderName: currentUser.name, uploaderOrg: currentUser.org,
+        category, uploadedAt: new Date().toISOString(), driveFileId: ''
+      });
+      resetFilterToAll();
+      switchTab('view', { skipLoad: true });
+      renderMaterials();
+      silentRefreshMaterials(); // 백그라운드로 서버 데이터와 조용히 동기화
+    } else {
+      showToast(res.message || '업로드 실패', 'error');
+    }
+  } catch(e) {
+    showToast('오류: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '📤 업로드';
+    setTimeout(() => { pw.style.display = 'none'; pf.style.width = '0'; }, 1500);
+  }
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const base64 = e.target.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── URL https:// 자동 보완 ──
+function normalizeUrl(raw) {
+  if (!raw) return raw;
+  // 이미 프로토콜이 있으면 그대로
+  if (/^https?:\/\//i.test(raw)) return raw;
+  // //로 시작하면 https: 붙이기
+  if (raw.startsWith('//')) return 'https:' + raw;
+  // 나머지는 https:// 추가
+  return 'https://' + raw;
+}
+
+// ── 링크 등록 ──
+async function submitLink() {
+  const title = document.getElementById('linkTitle').value.trim();
+  const rawUrl = document.getElementById('linkUrl').value.trim();
+  const url = normalizeUrl(rawUrl);
+  const category = document.getElementById('linkCategory').value;
+
+  if (!title) { showToast('제목을 입력해주세요.', 'error'); return; }
+  if (!url || !url.startsWith('http')) { showToast('올바른 URL을 입력해주세요. (https://...)', 'error'); return; }
+
+  const btn = document.getElementById('linkBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 등록 중...';
+
+  try {
+    const res = await api('POST', { action: 'addLink', title, url, uploaderName: currentUser.name, uploaderOrg: currentUser.org, category });
+    if (res.success) {
+      showToast('링크 등록 완료!', 'success');
+      document.getElementById('linkTitle').value = '';
+      document.getElementById('linkUrl').value = '';
+
+      // 서버를 다시 조회(느린 GET 요청)하는 대신, 방금 등록한 링크를 화면에 바로 추가해서 보여줌
+      allMaterials.unshift({
+        id: res.id, type: 'link', title, url, filename: '',
+        uploaderName: currentUser.name, uploaderOrg: currentUser.org,
+        category, uploadedAt: new Date().toISOString(), driveFileId: ''
+      });
+      resetFilterToAll();
+      switchTab('view', { skipLoad: true });
+      renderMaterials();
+      silentRefreshMaterials(); // 백그라운드로 서버 데이터와 조용히 동기화
+    } else {
+      showToast(res.message || '등록 실패', 'error');
+    }
+  } catch(e) {
+    showToast('오류: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '🔗 링크 등록';
+  }
+}
+
+// ── 자료 로드 & 렌더 ──
+async function loadMaterials() {
+  const listEl = document.getElementById('materialList');
+  listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><p>불러오는 중...</p></div>';
+  try {
+    const res = await api('GET', { action: 'getMaterials' });
+    if (res.success) {
+      allMaterials = res.data.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+      renderMaterials();
+    }
+  } catch(e) {
+    listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>자료를 불러올 수 없습니다.<br>잠시 후 다시 시도해주세요.</p></div>';
+  }
+}
+
+function filterMaterials(cat, el) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderMaterials();
+}
+
+function renderMaterials() {
+  const listEl = document.getElementById('materialList');
+  const items = currentFilter === '전체' ? allMaterials : allMaterials.filter(m => {
+    const cat = m.category || '';
+    if (currentFilter === '링크') return ['링크','참고자료'].includes(cat);
+    return cat === currentFilter;
+  });
+
+  if (!items.length) {
+    listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>등록된 자료가 없습니다.</p></div>';
+    return;
+  }
+
+  listEl.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  items.forEach(m => {
+    const isFile = m.type === 'file';
+    const date = m.uploadedAt ? new Date(m.uploadedAt).toLocaleDateString('ko-KR') : '';
+    const div = document.createElement('div');
+    div.className = 'material-card';
+    div.dataset.id = m.id;
+    div.innerHTML = `
+      <div class="material-header">
+        <div class="material-icon ${m.type}">${isFile ? '📄' : '🔗'}</div>
+        <div class="material-info">
+          <div class="material-title">${escHtml(m.title)}</div>
+          <div class="material-meta">
+            <span class="material-badge">${escHtml(m.category || '')}</span>
+            ${escHtml(m.uploaderOrg)} ${escHtml(m.uploaderName)} · ${date}
+          </div>
+        </div>
+        <div class="material-actions">
+          <a href="${escHtml(m.url)}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+            ${isFile ? '📥 열기' : '🔗 열기'}
+          </a>
+          <button class="btn btn-secondary btn-sm" onclick="toggleComment('${m.id}', event)">💬</button>
+          ${currentUser.isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteMaterial('${m.id}', event)">🗑</button>` : ''}
+        </div>
+      </div>
+      <div class="comment-section" id="comment-${m.id}">
+        <div class="comment-list" id="clist-${m.id}"><p style="font-size:12px;color:#aaa;">댓글 로딩 중...</p></div>
+        <div class="comment-input-row">
+          <input type="text" id="cinput-${m.id}" placeholder="댓글 입력 후 Enter" maxlength="200"
+            onkeydown="if(event.key==='Enter') submitComment('${m.id}')">
+          <button class="btn btn-primary btn-sm" onclick="submitComment('${m.id}')">등록</button>
+        </div>
+      </div>
+    `;
+    frag.appendChild(div);
+  });
+  listEl.appendChild(frag);
+}
+
+async function toggleComment(id, e) {
+  e.stopPropagation();
+  const sec = document.getElementById('comment-' + id);
+  const isOpen = sec.style.display === 'block';
+  sec.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) await loadComments(id);
+}
+
+async function loadComments(materialId) {
+  const listEl = document.getElementById('clist-' + materialId);
+  try {
+    const res = await api('GET', { action: 'getComments', materialId });
+    if (!res.success || !res.data.length) {
+      listEl.innerHTML = '<p style="font-size:12px;color:#aaa;margin-bottom:6px;">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>';
+    } else {
+      listEl.innerHTML = res.data.map(c => `
+        <div class="comment-item">
+          <div class="comment-author">${escHtml(c.commenterOrg)} ${escHtml(c.commenterName)}
+            <span style="font-weight:400;color:#aaa;font-size:11px;margin-left:6px;">${c.createdAt ? new Date(c.createdAt).toLocaleDateString('ko-KR') : ''}</span>
+          </div>
+          <div class="comment-text">${escHtml(c.comment)}</div>
+        </div>`).join('');
+    }
+  } catch(e) {
+    listEl.innerHTML = '<p style="font-size:12px;color:#e53935;">댓글 로드 오류</p>';
+  }
+}
+
+async function submitComment(materialId) {
+  const input = document.getElementById('cinput-' + materialId);
+  const comment = input.value.trim();
+  if (!comment) return;
+  input.disabled = true;
+  try {
+    const res = await api('POST', { action: 'addComment', materialId, comment, commenterName: currentUser.name, commenterOrg: currentUser.org });
+    if (res.success) { input.value = ''; await loadComments(materialId); showToast('댓글 등록!', 'success'); }
+    else showToast(res.message || '오류', 'error');
+  } catch(e) { showToast('오류: ' + e.message, 'error'); }
+  finally { input.disabled = false; }
+}
+
+async function deleteMaterial(materialId, e) {
+  e.stopPropagation();
+  if (!confirm('이 자료를 삭제하시겠습니까?')) return;
+  try {
+    const res = await api('POST', { action: 'deleteMaterial', materialId, requesterName: currentUser.name, requesterOrg: currentUser.org });
+    if (res.success) { showToast('삭제되었습니다.', 'success'); loadMaterials(); }
+    else showToast(res.message || '삭제 실패', 'error');
+  } catch(e) { showToast('오류: ' + e.message, 'error'); }
+}
+
+// ── API 통신 ──
+async function api(method, params) {
+  if (method === 'GET') {
+    const qs = Object.entries(params).map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+    const res = await fetch(`${API_URL}?${qs}`);
+    return res.json();
+  } else {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(params)
+    });
+    return res.json();
+  }
+}
+
+// ── 유틸 ──
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show ' + type;
+  setTimeout(() => { t.className = ''; }, 2800);
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── 세션 복원 ──
+(function restoreSession() {
+  const saved = sessionStorage.getItem('user');
+  if (saved) {
+    try {
+      currentUser = JSON.parse(saved);
+      enterApp();
+    } catch(e) { sessionStorage.removeItem('user'); }
+  }
+})();
+
+// ── Enter 키 로그인 ──
+document.getElementById('loginOrg').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginName').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>
